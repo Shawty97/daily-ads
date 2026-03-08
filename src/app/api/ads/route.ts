@@ -10,12 +10,14 @@ export async function GET(req: NextRequest) {
 
   const brandId = req.nextUrl.searchParams.get("brandId");
   const format = req.nextUrl.searchParams.get("format");
+  const unrated = req.nextUrl.searchParams.get("unrated");
 
   const where: Record<string, unknown> = {
     brand: { userId: session.user.id },
   };
   if (brandId) where.brandId = brandId;
   if (format) where.format = format;
+  if (unrated === "true") where.feedback = null;
 
   const ads = await prisma.adCreative.findMany({
     where,

@@ -29,10 +29,22 @@ export function Nav() {
                 Ads
               </Link>
               <Link
+                href="/swipe"
+                className="text-sm text-zinc-400 hover:text-white transition-colors"
+              >
+                Swipe
+              </Link>
+              <Link
                 href="/skills"
                 className="text-sm text-zinc-400 hover:text-white transition-colors"
               >
                 Skills
+              </Link>
+              <Link
+                href="/settings"
+                className="text-sm text-zinc-400 hover:text-white transition-colors"
+              >
+                Settings
               </Link>
               <button
                 onClick={() => signOut()}

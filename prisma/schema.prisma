@@ -10,17 +10,18 @@ datasource db {
 }
 
 model User {
-  id            String    @id @default(cuid())
-  name          String?
-  email         String    @unique
-  emailVerified DateTime?
-  image         String?
-  accounts      Account[]
-  sessions      Session[]
-  brands        Brand[]
-  skillRuns     SkillRun[]
-  createdAt     DateTime  @default(now())
-  updatedAt     DateTime  @updatedAt
+  id              String           @id @default(cuid())
+  name            String?
+  email           String           @unique
+  emailVerified   DateTime?
+  image           String?
+  accounts        Account[]
+  sessions        Session[]
+  brands          Brand[]
+  skillRuns       SkillRun[]
+  emailPreference EmailPreference?
+  createdAt       DateTime         @default(now())
+  updatedAt       DateTime         @updatedAt
 
   @@map("da_users")
   @@schema("daily_ads")
@@ -135,5 +136,18 @@ model SkillRun {
   createdAt DateTime @default(now())
 
   @@map("da_skill_runs")
+  @@schema("daily_ads")
+}
+
+model EmailPreference {
+  id            String   @id @default(cuid())
+  userId        String   @unique
+  user          User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  digestEnabled Boolean  @default(true)
+  digestTime    String   @default("08:00")
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  @@map("da_email_preferences")
   @@schema("daily_ads")
 }
