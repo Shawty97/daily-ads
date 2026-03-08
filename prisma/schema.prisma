@@ -103,19 +103,20 @@ model Campaign {
 }
 
 model AdCreative {
-  id         String    @id @default(cuid())
-  brandId    String
-  brand      Brand     @relation(fields: [brandId], references: [id], onDelete: Cascade)
-  campaignId String?
-  campaign   Campaign? @relation(fields: [campaignId], references: [id])
-  format     String
-  hook       String    @db.Text
-  body       String    @db.Text
-  cta        String?
-  angle      String?
-  imageUrl   String?
-  feedback   Int?
-  createdAt  DateTime  @default(now())
+  id           String    @id @default(cuid())
+  brandId      String
+  brand        Brand     @relation(fields: [brandId], references: [id], onDelete: Cascade)
+  campaignId   String?
+  campaign     Campaign? @relation(fields: [campaignId], references: [id])
+  format       String
+  hook         String    @db.Text
+  body         String    @db.Text
+  cta          String?
+  angle        String?
+  imageUrl     String?
+  hookVariants Json?
+  feedback     Int?
+  createdAt    DateTime  @default(now())
 
   @@index([brandId])
   @@map("da_ad_creatives")

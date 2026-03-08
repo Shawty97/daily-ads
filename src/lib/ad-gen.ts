@@ -1,10 +1,18 @@
 import { aiComplete } from "./ai";
+import { generateAdImage, buildImagePrompt } from "./image-gen";
+
+export interface HookVariant {
+  type: string;
+  text: string;
+}
 
 export interface AdCreativeInput {
   format: string;
   hook: string;
   body: string;
   cta: string | null;
+  imageUrl?: string | null;
+  hookVariants?: HookVariant[];
 }
 
 interface BrandInfo {
@@ -60,9 +68,21 @@ Antworte NUR als JSON Array (kein Markdown, keine Erklaerung):
     "format": "format-name",
     "hook": "Der Hook / die Headline",
     "body": "Der Body-Text der Ad",
-    "cta": "Call to Action Text oder null"
+    "cta": "Call to Action Text oder null",
+    "hookVariants": [
+      { "type": "curiosity", "text": "Wusstest du... / Did you know..." },
+      { "type": "pain-point", "text": "Kennst du das... / Tired of..." },
+      { "type": "benefit", "text": "Stell dir vor... / Imagine if..." }
+    ]
   }
 ]
+
+Hook-Varianten Regeln:
+- Jede Ad MUSS genau 3 hookVariants haben
+- "curiosity": Neugier wecken, ueberraschende Frage oder Fakt
+- "pain-point": Schmerzpunkt ansprechen, Problem benennen
+- "benefit": Vorteil/Ergebnis in den Vordergrund stellen
+- Jede Variante soll ein eigenstaendiger, vollstaendiger Hook sein (nicht nur der Anfang)
 
 Format-Beschreibungen:
 - meme: Witziger, meme-artiger Text. Relatable, leicht provokant.
@@ -87,13 +107,25 @@ Jede Ad soll einzigartig sein mit unterschiedlichen Hooks und Ansaetzen.`;
 
   const result = await aiComplete(systemPrompt, userMessage);
 
+  let ads: AdCreativeInput[];
   try {
     const cleaned = result
       .replace(/```json\n?/g, "")
       .replace(/```\n?/g, "")
       .trim();
-    return JSON.parse(cleaned) as AdCreativeInput[];
+    ads = JSON.parse(cleaned) as AdCreativeInput[];
   } catch {
     throw new Error("Failed to parse ad generation result");
   }
+
+  // Generate images in parallel for all ads
+  const adsWithImages = await Promise.all(
+    ads.map(async (ad) => {
+      const imagePrompt = buildImagePrompt(brand.name, ad.hook, ad.format);
+      const imageUrl = await generateAdImage(imagePrompt);
+      return { ...ad, imageUrl: imageUrl ?? null };
+    })
+  );
+
+  return adsWithImages;
 }
