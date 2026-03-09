@@ -1,5 +1,6 @@
 import { aiComplete } from "./ai";
 import { generateAdImage, buildImagePrompt } from "./image-gen";
+import { getPlatformPromptContext } from "./platforms";
 
 export interface HookVariant {
   type: string;
@@ -45,11 +46,16 @@ export function getAdFormats(): readonly string[] {
 export async function generateAds(
   brand: BrandInfo,
   count: number,
-  formats?: string[]
+  formats?: string[],
+  platforms?: string[]
 ): Promise<AdCreativeInput[]> {
   const selectedFormats = formats?.length
     ? formats
     : AD_FORMATS.slice(0, count);
+
+  const platformContext = platforms?.length
+    ? getPlatformPromptContext(platforms)
+    : "";
 
   const systemPrompt = `Du bist ein Werbetexter fuer den DACH-Markt. Du generierst Ad Creatives in verschiedenen Formaten.
 
@@ -61,6 +67,7 @@ ${brand.voice ? `- Brand Voice: ${brand.voice}` : ""}
 ${brand.positioning ? `- Positioning: ${brand.positioning}` : ""}
 ${brand.audience ? `- Zielgruppe: ${brand.audience}` : ""}
 ${brand.usps.length > 0 ? `- USPs: ${brand.usps.join(", ")}` : ""}
+${platformContext}
 
 Antworte NUR als JSON Array (kein Markdown, keine Erklaerung):
 [
@@ -101,9 +108,13 @@ DACH-Regeln:
 - EUR statt USD
 - Professionell aber nicht langweilig`;
 
+  const platformInstruction = platforms?.length
+    ? `\nPasse jede Ad an die gewaehlte(n) Plattform(en) an: ${platforms.join(", ")}. Beachte die Zeichenlimits und den Ton der jeweiligen Plattform.`
+    : "";
+
   const userMessage = `Generiere ${count} Ad Creatives in diesen Formaten: ${selectedFormats.join(", ")}
 
-Jede Ad soll einzigartig sein mit unterschiedlichen Hooks und Ansaetzen.`;
+Jede Ad soll einzigartig sein mit unterschiedlichen Hooks und Ansaetzen.${platformInstruction}`;
 
   const result = await aiComplete(systemPrompt, userMessage);
 

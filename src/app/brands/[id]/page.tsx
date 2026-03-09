@@ -7,6 +7,7 @@ import Image from "next/image";
 import { Nav } from "@/components/nav";
 import { Footer } from "@/components/footer";
 import { PlatformMockupSelector } from "@/components/ad-mockups";
+import { PLATFORMS } from "@/lib/platforms";
 
 interface HookVariant {
   type: string;
@@ -39,16 +40,9 @@ interface Brand {
   _count: { adCreatives: number; skillRuns: number };
 }
 
-const AD_FORMATS = [
-  "meme",
-  "fake-text",
-  "stat-card",
-  "ugc",
-  "napkin-math",
-  "tweet-screenshot",
-  "slack-screenshot",
-  "linkedin",
-];
+import { getAdFormats } from "@/lib/ad-gen";
+
+const AD_FORMATS = getAdFormats();
 
 const HOOK_TYPE_LABELS: Record<string, { label: string; color: string }> = {
   curiosity: { label: "Neugier", color: "text-blue-400 bg-blue-500/10 border-blue-500/30" },
@@ -61,6 +55,7 @@ export default function BrandDetailPage() {
   const [brand, setBrand] = useState<Brand | null>(null);
   const [generating, setGenerating] = useState(false);
   const [selectedFormats, setSelectedFormats] = useState<string[]>([]);
+  const [selectedPlatforms, setSelectedPlatforms] = useState<string[]>([]);
   const [expandedAd, setExpandedAd] = useState<string | null>(null);
 
   useEffect(() => {
@@ -80,6 +75,7 @@ export default function BrandDetailPage() {
           brandId: brand.id,
           count: selectedFormats.length || 4,
           formats: selectedFormats.length > 0 ? selectedFormats : undefined,
+          platforms: selectedPlatforms.length > 0 ? selectedPlatforms : undefined,
         }),
       });
       if (res.ok) {
@@ -114,6 +110,14 @@ export default function BrandDetailPage() {
       prev.includes(format)
         ? prev.filter((f) => f !== format)
         : [...prev, format]
+    );
+  }
+
+  function togglePlatform(platformId: string) {
+    setSelectedPlatforms((prev) =>
+      prev.includes(platformId)
+        ? prev.filter((p) => p !== platformId)
+        : [...prev, platformId]
     );
   }
 
@@ -212,6 +216,33 @@ export default function BrandDetailPage() {
                 </button>
               ))}
             </div>
+
+            {/* Platform Selector (B7) */}
+            <p className="text-sm text-zinc-400 mb-3">
+              Zielplattform (optional — passt Ton und Laenge an):
+            </p>
+            <div className="flex flex-wrap gap-2 mb-5">
+              {PLATFORMS.map((platform) => (
+                <button
+                  key={platform.id}
+                  onClick={() => togglePlatform(platform.id)}
+                  className={`flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs border transition-colors ${
+                    selectedPlatforms.includes(platform.id)
+                      ? "bg-emerald-500/20 border-emerald-500 text-emerald-300"
+                      : "border-zinc-700 text-zinc-400 hover:border-zinc-600"
+                  }`}
+                >
+                  <span className="font-bold text-[10px] w-5 text-center">
+                    {platform.icon}
+                  </span>
+                  <span>{platform.name}</span>
+                  <span className="text-zinc-600 hidden sm:inline">
+                    — {platform.description}
+                  </span>
+                </button>
+              ))}
+            </div>
+
             <button
               onClick={handleGenerate}
               disabled={generating}

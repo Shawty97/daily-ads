@@ -12,8 +12,16 @@ export async function POST(req: NextRequest) {
 
   const body = await req.json();
   const brandId = body.brandId;
+  const VALID_FORMATS = new Set(["meme","fake-text","stat-card","ugc","napkin-math","tweet-screenshot","slack-screenshot","linkedin"]);
+  const VALID_PLATFORMS = new Set(["instagram","tiktok","linkedin","x"]);
+
   const count = Math.min(Math.max(Number(body.count) || 4, 1), 8);
-  const formats = Array.isArray(body.formats) ? body.formats.slice(0, 8) : undefined;
+  const formats = Array.isArray(body.formats)
+    ? body.formats.filter((f: unknown) => typeof f === "string" && VALID_FORMATS.has(f)).slice(0, 8)
+    : undefined;
+  const platforms = Array.isArray(body.platforms)
+    ? body.platforms.filter((p: unknown) => typeof p === "string" && VALID_PLATFORMS.has(p)).slice(0, 4)
+    : undefined;
 
   if (!brandId) {
     return NextResponse.json({ error: "brandId required" }, { status: 400 });
@@ -28,7 +36,7 @@ export async function POST(req: NextRequest) {
   }
 
   try {
-    const ads = await generateAds(brand, count, formats);
+    const ads = await generateAds(brand, count, formats, platforms);
 
     const created = await prisma.adCreative.createManyAndReturn({
       data: ads.map((ad) => ({

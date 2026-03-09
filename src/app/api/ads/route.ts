@@ -12,12 +12,21 @@ export async function GET(req: NextRequest) {
   const format = req.nextUrl.searchParams.get("format");
   const unrated = req.nextUrl.searchParams.get("unrated");
 
+  const date = req.nextUrl.searchParams.get("date");
+
   const where: Record<string, unknown> = {
     brand: { userId: session.user.id },
   };
   if (brandId) where.brandId = brandId;
   if (format) where.format = format;
   if (unrated === "true") where.feedback = null;
+  if (date) {
+    const start = new Date(date + "T00:00:00.000Z");
+    const end = new Date(date + "T23:59:59.999Z");
+    if (!isNaN(start.getTime())) {
+      where.createdAt = { gte: start, lte: end };
+    }
+  }
 
   const ads = await prisma.adCreative.findMany({
     where,

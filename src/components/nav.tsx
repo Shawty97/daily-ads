@@ -35,6 +35,12 @@ export function Nav() {
                 Swipe
               </Link>
               <Link
+                href="/calendar"
+                className="text-sm text-zinc-400 hover:text-white transition-colors"
+              >
+                Kalender
+              </Link>
+              <Link
                 href="/skills"
                 className="text-sm text-zinc-400 hover:text-white transition-colors"
               >
