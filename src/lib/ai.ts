@@ -1,19 +1,28 @@
-import Anthropic from "@anthropic-ai/sdk";
+import OpenAI from "openai";
 
-const anthropic = new Anthropic();
+let _groq: OpenAI | null = null;
+function getGroq(): OpenAI {
+  if (!_groq) {
+    _groq = new OpenAI({
+      apiKey: process.env.GROQ_API_KEY || "",
+      baseURL: "https://api.groq.com/openai/v1",
+    });
+  }
+  return _groq;
+}
 
 export async function aiComplete(
   systemPrompt: string,
   userMessage: string
 ): Promise<string> {
-  const response = await anthropic.messages.create({
-    model: "claude-sonnet-4-6",
+  const response = await getGroq().chat.completions.create({
+    model: "llama-3.3-70b-versatile",
     max_tokens: 4096,
-    system: systemPrompt,
-    messages: [{ role: "user", content: userMessage }],
+    messages: [
+      { role: "system", content: systemPrompt },
+      { role: "user", content: userMessage },
+    ],
   });
 
-  const block = response.content[0];
-  if (block.type === "text") return block.text;
-  return "";
+  return response.choices[0]?.message?.content ?? "";
 }
